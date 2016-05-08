@@ -33,6 +33,9 @@ public class User {
 	@Column(name = "location_lng")
 	private Double locationLng;
 	
+	@Column(name = "location_name")
+	private String locationName;
+	
 	@Column(name = "last_query")
 	private String lastQuery;
 
@@ -98,6 +101,14 @@ public class User {
 
 	public void setLocationLng(Double locationLng) {
 		this.locationLng = locationLng;
+	}
+
+	public String getLocationName() {
+		return locationName;
+	}
+
+	public void setLocationName(String locationName) {
+		this.locationName = locationName;
 	}
 	
 	

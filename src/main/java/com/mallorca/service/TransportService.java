@@ -41,20 +41,17 @@ public class TransportService {
 		headers.set("Authorization-Token", "HTDpJrQU5wOgtjXGVbBsxmYial1noCfI");
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 		String decodedURL = builder.toUriString().replaceAll("%5B", "[").replaceAll("%5D", "]");
+		try {
 		ResponseEntity<String> response = restTemplate.exchange(decodedURL, HttpMethod.GET, entity,
 				String.class);
 		String responseBody = response.getBody();
 		ObjectMapper mapper = new ObjectMapper();
-		try {
+		
 			JsonNode node = mapper.readTree(responseBody);
 			double minPrice = node.get("routes").elements().next().get("indicativePrices").elements().next().get("priceLow").asDouble();
 			return minPrice;
 		
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e){
 			e.printStackTrace();
 		}
 		Random random = new Random();

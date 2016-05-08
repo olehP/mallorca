@@ -20,4 +20,5 @@ public interface MomentDAO extends JpaRepository<Moment, Integer> {
 
 	@Query("SELECT um.moment FROM  UserMoment um WHERE um.user = :user AND um.state = :state")
 	public List<Moment> findByUserAndStatus(@Param("user") User user , @Param("state") UserMomentState state);
+	
 }

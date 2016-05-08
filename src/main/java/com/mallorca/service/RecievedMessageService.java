@@ -37,34 +37,39 @@ public class RecievedMessageService {
 	private MomentDAO momentDAO;
 	@Autowired
 	private UserMomentDAO userMomentDAO;
-	
+
 	public void proccessMessage(MessageRecieved messageRecieved) {
 		Messaging messaging = messageRecieved.getEntry().get(0).getMessaging().get(0);
-		if(!userService.createIfNotExist(messaging.getSender())){
-			if (messaging.getMessage()!=null &&messaging.getMessage().getText() != null) {
-			userService.sendMoments(messaging.getSender(),messaging.getMessage().getText(), 0 );
-			return;
+		if (!userService.createIfNotExist(messaging.getSender())) {
+			if (messaging.getMessage() != null && messaging.getMessage().getText() != null) {
+				if (messaging.getMessage().getText().startsWith("Text:")){
+					//momentService.addText(messaging.getMessage().getText(), messaging.getSender());
+					sendMessageService.sendSimpleMessage(messaging.getSender(), "Send me your location to give a chance for more people to live tha moment");
+				} else {
+				userService.sendMoments(messaging.getSender(), messaging.getMessage().getText(), 0);
+				}
+				return;
 			}
-			if (messaging.getPostback()!=null&& messaging.getPostback().getPayload()!=null){
-				String payload =  messaging.getPostback().getPayload();
-				if (payload.startsWith("NEXT")){
-					int page = Integer.parseInt(payload.substring(payload.indexOf('_')+1));
+			if (messaging.getPostback() != null && messaging.getPostback().getPayload() != null) {
+				String payload = messaging.getPostback().getPayload();
+				if (payload.startsWith("NEXT")) {
+					int page = Integer.parseInt(payload.substring(payload.indexOf('_') + 1));
 					User user = userDAO.findByChatId(messaging.getSender().getId());
 					userService.sendMoments(messaging.getSender(), user.getLastQuery(), page);
 					return;
-				} 
-				if (payload.startsWith("TODO")){
-					Integer momentId = Integer.parseInt(payload.substring(payload.indexOf('_')+1));
+				}
+				if (payload.startsWith("TODO")) {
+					Integer momentId = Integer.parseInt(payload.substring(payload.indexOf('_') + 1));
 					User user = userDAO.findByChatId(messaging.getSender().getId());
 					Moment moment = momentDAO.findOne(momentId);
 					UserMoment existingUserMoment = userMomentDAO.findByUserAndMoment(user, moment);
-					if (existingUserMoment!=null){
+					if (existingUserMoment != null) {
 						sendMessageService.sendSimpleMessage(messaging.getSender(), Constants.ALREADY_ADDED);
 						return;
 					}
-					moment.setTodoClicked(moment.getTodoClicked()+1);
+					moment.setTodoClicked(moment.getTodoClicked() + 1);
 					momentDAO.save(moment);
-					
+
 					UserMoment userMoment = new UserMoment();
 					userMoment.setMoment(moment);
 					userMoment.setUser(user);
@@ -73,12 +78,12 @@ public class RecievedMessageService {
 					sendMessageService.sendSimpleMessage(messaging.getSender(), Constants.TODO_ADDED_MESSAGE);
 					return;
 				}
-				
-				if (payload.startsWith("DONE")){
-					Integer momentId = Integer.parseInt(payload.substring(payload.indexOf('_')+1));
+
+				if (payload.startsWith("DONE")) {
+					Integer momentId = Integer.parseInt(payload.substring(payload.indexOf('_') + 1));
 					User user = userDAO.findByChatId(messaging.getSender().getId());
 					Moment moment = momentDAO.findOne(momentId);
-					moment.setDoneClicked(moment.getDoneClicked()+1);
+					moment.setDoneClicked(moment.getDoneClicked() + 1);
 					momentDAO.save(moment);
 					UserMoment userMoment = userMomentDAO.findByUserAndMoment(user, moment);
 					userMoment.setState(UserMomentState.DONE);
@@ -86,55 +91,91 @@ public class RecievedMessageService {
 					sendMessageService.sendSimpleMessage(messaging.getSender(), Constants.DONE_MESSAGE);
 					return;
 				}
-				if (payload.equals("MENU")){
+				if (payload.equals("MENU")) {
 					showMenu(messaging.getSender());
 					return;
 				}
-				
-				if (payload.equals("MY_TODO")){
+
+				if (payload.equals("MY_TODO")) {
 					momentService.showMyTodo(messaging.getSender());
 					return;
 				}
-				
-				if (payload.equals("MY_DONE")){
+
+				if (payload.equals("MY_DONE")) {
 					momentService.showMyDone(messaging.getSender());
 					return;
 				}
-				
+
+				if (payload.startsWith("DOIT")) {
+					Integer momentId = Integer.parseInt(payload.substring(payload.indexOf('_') + 1));
+					momentService.showDoIt(messaging.getSender(), momentId);
+					return;
+				}
+				if (payload.equals("ADD_MOMENT")) {
+					sendMessageService.sendSimpleMessage(messaging.getSender(),
+							"Send a photo anf the text for  the moment you've lived");
+					return;
+				}
+
+
+			}
+			if (messaging.getMessage() != null&& messaging.getMessage().getAttachments()!=null
+					&& messaging.getMessage().getAttachments().get(0).getType().equals("image")) {
+				com.mallorca.model.incoming.Payload payloadImage = messaging.getMessage().getAttachments().get(0)
+						.getPayload();
+
+				Moment moment = new Moment();
+				moment.setImageUrl(payloadImage.getUrl());
+				momentDAO.save(moment);
+				User user = userDAO.findByChatId(messaging.getSender().getId());
+				UserMoment userMoment = new UserMoment();
+				userMoment.setMoment(moment);
+				userMoment.setUser(user);
+				userMoment.setState(UserMomentState.DEFINED);
+				sendMessageService.sendSimpleMessage(messaging.getSender(), "Please, send the text to the pictute with the prefix \"Text:\"");
 			}
 			
-		}
-		
-	
-//		if (messaging.getMessage().getText() != null) {
-//			
-//			sendMessageService.sendSimpleMessage(messaging.getSender(), messaging.getMessage().getText());
-//		} else {
-//			System.out.println("Message is empty");
-//		}
-//		if (messaging.getMessage().getAttachments() != null) {
-//			for (Attachment attachment : messaging.getMessage().getAttachments()) {
-//				if ("location".equals(attachment.getType())) {
-//					sendMessageService.sendSimpleMessage(messaging.getSender(),
-//							attachment.getTitle() + " " + attachment.getPayload());
-//				}
-//			}
+			if (messaging.getMessage() != null&& messaging.getMessage().getAttachments()!=null
+					&& messaging.getMessage().getAttachments().get(0).getType().equals("location")) {
+				sendMessageService.sendSimpleMessage(messaging.getSender(), "Thanks for sharing with us");
+			}
 
-		/*	sendMessageService.sendGenericMessages(messaging.getSender(),
-					Arrays.asList("http://s3.favim.com/orig/46/bucket-list-night-stars-Favim.com-421161.jpg",
-							"http://www.tatertwins.com/wp-content/uploads/2012/01/48c51595430a2a658e3c20386f6b1e16.jpg",
-							"http://data.whicdn.com/images/19648592/large.jpg",
-							"http://s3.favim.com/orig/46/bucket-list-night-stars-Favim.com-421161.jpg",
-							"http://www.tatertwins.com/wp-content/uploads/2012/01/48c51595430a2a658e3c20386f6b1e16.jpg",
-							"http://data.whicdn.com/images/19648592/large.jpg",
-							"http://s3.favim.com/orig/46/bucket-list-night-stars-Favim.com-421161.jpg",
-							"http://www.tatertwins.com/wp-content/uploads/2012/01/48c51595430a2a658e3c20386f6b1e16.jpg",
-							"http://data.whicdn.com/images/19648592/large.jpg"),
-					"Live this moment"); */
-		
+		}
+
+		// if (messaging.getMessage().getText() != null) {
+		//
+		// sendMessageService.sendSimpleMessage(messaging.getSender(),
+		// messaging.getMessage().getText());
+		// } else {
+		// System.out.println("Message is empty");
+		// }
+		// if (messaging.getMessage().getAttachments() != null) {
+		// for (Attachment attachment : messaging.getMessage().getAttachments())
+		// {
+		// if ("location".equals(attachment.getType())) {
+		// sendMessageService.sendSimpleMessage(messaging.getSender(),
+		// attachment.getTitle() + " " + attachment.getPayload());
+		// }
+		// }
+
+		/*
+		 * sendMessageService.sendGenericMessages(messaging.getSender(),
+		 * Arrays.asList(
+		 * "http://s3.favim.com/orig/46/bucket-list-night-stars-Favim.com-421161.jpg",
+		 * "http://www.tatertwins.com/wp-content/uploads/2012/01/48c51595430a2a658e3c20386f6b1e16.jpg",
+		 * "http://data.whicdn.com/images/19648592/large.jpg",
+		 * "http://s3.favim.com/orig/46/bucket-list-night-stars-Favim.com-421161.jpg",
+		 * "http://www.tatertwins.com/wp-content/uploads/2012/01/48c51595430a2a658e3c20386f6b1e16.jpg",
+		 * "http://data.whicdn.com/images/19648592/large.jpg",
+		 * "http://s3.favim.com/orig/46/bucket-list-night-stars-Favim.com-421161.jpg",
+		 * "http://www.tatertwins.com/wp-content/uploads/2012/01/48c51595430a2a658e3c20386f6b1e16.jpg",
+		 * "http://data.whicdn.com/images/19648592/large.jpg"),
+		 * "Live this moment");
+		 */
+
 	}
-	
-	public void showMenu(UserId userId){
+
+	public void showMenu(UserId userId) {
 		ButtomTemplateRequest request = new ButtomTemplateRequest();
 		request.setRecipient(userId);
 		Message message = new Message();
@@ -155,10 +196,15 @@ public class RecievedMessageService {
 		doneButton.setPayload("MY_DONE");
 		doneButton.setTitle("MY done");
 		doneButton.setType("postback");
+		Button dateButton = new Button();
+		dateButton.setPayload("DATE");
+		dateButton.setTitle("Personal settings");
+		dateButton.setType("postback");
+		buttons.add(dateButton);
 		buttons.add(todoButton);
 		buttons.add(doneButton);
 		payload.setButtons(buttons);
 		sendMessageService.sendButtonsMessage(request);
 	}
-	
+
 }

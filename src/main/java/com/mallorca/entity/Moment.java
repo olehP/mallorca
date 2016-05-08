@@ -24,6 +24,26 @@ public class Moment {
 	
 	@Column(name = "done_clicked")
 	private Integer doneClicked;
+	
+	@Column(name = "location_lng")
+	private Double locationLng;
+	
+	@Column(name = "location_lat")
+	private Double locationLat;
+	
+	@Column(name = "location_name")
+	private String locationName;
+	
+	@Column(name = "activity_code")
+	private String activityCode;
+
+	public String getActivityCode() {
+		return activityCode;
+	}
+
+	public void setActivityCode(String activityCode) {
+		this.activityCode = activityCode;
+	}
 
 	public Integer getId() {
 		return id;
@@ -63,6 +83,30 @@ public class Moment {
 
 	public void setDoneClicked(Integer doneClicked) {
 		this.doneClicked = doneClicked;
+	}
+
+	public Double getLocationLng() {
+		return locationLng;
+	}
+
+	public void setLocationLng(Double locationLng) {
+		this.locationLng = locationLng;
+	}
+
+	public Double getLocationLat() {
+		return locationLat;
+	}
+
+	public void setLocationLat(Double locationLat) {
+		this.locationLat = locationLat;
+	}
+
+	public String getLocationName() {
+		return locationName;
+	}
+
+	public void setLocationName(String locationName) {
+		this.locationName = locationName;
 	}
 	
 	
