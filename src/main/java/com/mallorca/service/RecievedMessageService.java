@@ -30,6 +30,8 @@ public class RecievedMessageService {
 	@Autowired
 	private UserService userService;
 	@Autowired
+	private MomentsService momentService;
+	@Autowired
 	private UserDAO userDAO;
 	@Autowired
 	private MomentDAO momentDAO;
@@ -55,8 +57,14 @@ public class RecievedMessageService {
 					Integer momentId = Integer.parseInt(payload.substring(payload.indexOf('_')+1));
 					User user = userDAO.findByChatId(messaging.getSender().getId());
 					Moment moment = momentDAO.findOne(momentId);
+					UserMoment existingUserMoment = userMomentDAO.findByUserAndMoment(user, moment);
+					if (existingUserMoment!=null){
+						sendMessageService.sendSimpleMessage(messaging.getSender(), Constants.ALREADY_ADDED);
+						return;
+					}
 					moment.setTodoClicked(moment.getTodoClicked()+1);
 					momentDAO.save(moment);
+					
 					UserMoment userMoment = new UserMoment();
 					userMoment.setMoment(moment);
 					userMoment.setUser(user);
@@ -71,19 +79,26 @@ public class RecievedMessageService {
 					User user = userDAO.findByChatId(messaging.getSender().getId());
 					Moment moment = momentDAO.findOne(momentId);
 					moment.setDoneClicked(moment.getDoneClicked()+1);
+					momentDAO.save(moment);
 					UserMoment userMoment = userMomentDAO.findByUserAndMoment(user, moment);
 					userMoment.setState(UserMomentState.DONE);
 					userMomentDAO.save(userMoment);
 					sendMessageService.sendSimpleMessage(messaging.getSender(), Constants.DONE_MESSAGE);
 					return;
 				}
-				if (payload.startsWith("MENU")){
+				if (payload.equals("MENU")){
 					showMenu(messaging.getSender());
 					return;
 				}
 				
 				if (payload.equals("MY_TODO")){
-					
+					momentService.showMyTodo(messaging.getSender());
+					return;
+				}
+				
+				if (payload.equals("MY_DONE")){
+					momentService.showMyDone(messaging.getSender());
+					return;
 				}
 				
 			}
@@ -121,6 +136,7 @@ public class RecievedMessageService {
 	
 	public void showMenu(UserId userId){
 		ButtomTemplateRequest request = new ButtomTemplateRequest();
+		request.setRecipient(userId);
 		Message message = new Message();
 		request.setMessage(message);
 		Attachment attachment = new Attachment();
@@ -142,6 +158,7 @@ public class RecievedMessageService {
 		buttons.add(todoButton);
 		buttons.add(doneButton);
 		payload.setButtons(buttons);
+		sendMessageService.sendButtonsMessage(request);
 	}
 	
 }

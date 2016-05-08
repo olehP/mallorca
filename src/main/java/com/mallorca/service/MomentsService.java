@@ -101,6 +101,7 @@ public class MomentsService {
 		List<Moment> moments = momentDAO.findByUserAndStatus(user, UserMomentState.TODO);
 		if (moments.isEmpty()){
 			sendMessageService.sendSimpleMessage(userId, Constants.EMPTY_TODO_LIST);
+			return;
 		}
 		List<MessageElement> elements = new LinkedList<>();
 		for(Moment moment: moments){
@@ -134,7 +135,7 @@ public class MomentsService {
 		doneButton.setType("postback");
 		buttons.add(doneButton);
 		messageElement.setButtons(buttons);
-		
+		sendMessageService.sendGenericMessages(userId, elements);
 		
 	}
 	
@@ -142,7 +143,8 @@ public class MomentsService {
 		User user  = userDAO.findByChatId(userId.getId());
 		List<Moment> moments = momentDAO.findByUserAndStatus(user, UserMomentState.DONE);
 		if (moments.isEmpty()){
-			sendMessageService.sendSimpleMessage(userId, Constants.EMPTY_TODO_LIST);
+			sendMessageService.sendSimpleMessage(userId, Constants.EMPTY_DONE_LIST);
+			return;
 		}
 		List<MessageElement> elements = new LinkedList<>();
 		for(Moment moment: moments){
@@ -171,7 +173,6 @@ public class MomentsService {
 		doneButton.setType("postback");
 		buttons.add(doneButton);
 		messageElement.setButtons(buttons);
-		
-		
+		sendMessageService.sendGenericMessages(userId, elements);
 	}
 }

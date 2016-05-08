@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import com.mallorca.model.UserId;
 import com.mallorca.model.outgoing.SimpleMessage;
 import com.mallorca.model.outgoing.SimpleMessageRequest;
+import com.mallorca.model.outgoing.button.ButtomTemplateRequest;
 import com.mallorca.model.outgoing.generic.Attachment;
 import com.mallorca.model.outgoing.generic.Message;
 import com.mallorca.model.outgoing.generic.MessageElement;
@@ -47,5 +48,10 @@ public class SendMessageService {
 		payload.setTemplateType("generic");
 		payload.setElements(elements);
 		restTemplate.postForObject(MESSAGING_URL, messageRequest, String.class);
+	}
+
+	public void sendButtonsMessage(ButtomTemplateRequest request) {
+		restTemplate.postForObject(MESSAGING_URL, request, String.class);
+		
 	}
 }
