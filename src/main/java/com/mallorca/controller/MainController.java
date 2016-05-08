@@ -14,13 +14,10 @@ import com.mallorca.service.UserService;
 public class MainController {
 	@Autowired
 	private RecievedMessageService recievedMessageService;
-	@Autowired
-	private UserService userService;
 
 	@RequestMapping("/")
 	private void index(@RequestBody MessageRecieved messageRecieved) {
 		try {
-			userService.createIfNotExist(messageRecieved.getEntry().get(0).getMessaging().get(0).getSender().getId());
 			recievedMessageService.proccessMessage(messageRecieved);
 		} catch (HttpClientErrorException e) {
 			System.out.println(e.getResponseBodyAsString());

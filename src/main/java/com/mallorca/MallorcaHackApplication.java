@@ -7,6 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class MallorcaHackApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MallorcaHackApplication.class, args);
+		try {
+			SpringApplication.run(MallorcaHackApplication.class, args);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 }

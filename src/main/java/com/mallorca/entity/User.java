@@ -30,8 +30,19 @@ public class User {
 	@Column(name = "location_lat")
 	private Double loactionLat;
 	
-	@Column(name = "location lng")
+	@Column(name = "location_lng")
 	private Double locationLng;
+	
+	@Column(name = "last_query")
+	private String lastQuery;
+
+	public String getLastQuery() {
+		return lastQuery;
+	}
+
+	public void setLastQuery(String lastQuery) {
+		this.lastQuery = lastQuery;
+	}
 
 	public Integer getId() {
 		return id;
