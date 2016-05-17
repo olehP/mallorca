@@ -1,5 +1,6 @@
 package com.mallorca.service;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import com.mallorca.model.outgoing.SimpleMessage;
 import com.mallorca.model.outgoing.SimpleMessageRequest;
 import com.mallorca.model.outgoing.button.ButtomTemplateRequest;
 import com.mallorca.model.outgoing.generic.Attachment;
+import com.mallorca.model.outgoing.generic.Button;
 import com.mallorca.model.outgoing.generic.Message;
 import com.mallorca.model.outgoing.generic.MessageElement;
 import com.mallorca.model.outgoing.generic.MessageRequest;
@@ -19,14 +21,15 @@ import com.mallorca.model.outgoing.generic.Payload;
 
 @Service
 public class SendMessageService {
+
 	@Value("${facebook.access.token}")
 	private String FACEBOOK_TOKEN;
 	@Value("${facebook.messaging.url}")
 	private String MESSAGING_URL;
 	@Autowired
 	private RestTemplate restTemplate;
-	
-	public void sendSimpleMessage(UserId recipient, String text){
+
+	public void sendSimpleMessage(UserId recipient, String text) {
 		SimpleMessageRequest request = new SimpleMessageRequest();
 		request.setRecipient(recipient);
 		SimpleMessage message = new SimpleMessage();
@@ -34,9 +37,9 @@ public class SendMessageService {
 		request.setMessage(message);
 		System.out.println(restTemplate.postForObject(MESSAGING_URL, request, String.class));
 	}
-	
-	public void sendGenericMessages(UserId recipient, List<MessageElement> elements ){
-		MessageRequest messageRequest  =new MessageRequest();
+
+	public void sendGenericMessages(UserId recipient, List<MessageElement> elements) {
+		MessageRequest messageRequest = new MessageRequest();
 		messageRequest.setRecipient(recipient);
 		Message message = new Message();
 		messageRequest.setMessage(message);
@@ -52,6 +55,15 @@ public class SendMessageService {
 
 	public void sendButtonsMessage(ButtomTemplateRequest request) {
 		restTemplate.postForObject(MESSAGING_URL, request, String.class);
-		
+
+	}
+
+	public void sendCancelMessage(UserId userId, String text) {
+		Button button = new Button();
+		button.setTitle("Cancel");
+		button.setType("postback");
+		button.setPayload("CANCEL");
+		ButtomTemplateRequest request = ButtomTemplateRequest.getBuilder().recipient(userId).text(text).buttons(Arrays.asList(button)).build();
+		sendButtonsMessage(request);
 	}
 }

@@ -1,8 +1,9 @@
 package com.mallorca.entity;
 
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -10,14 +11,15 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "user")
 public class User {
+
 	@Id
 	@GeneratedValue
 	@Column(name = "id")
 	private Integer id;
-	
+
 	@Column(name = "chat_id")
 	private String chatId;
-	
+
 	@Column(name = "password")
 	private String password;
 
@@ -29,15 +31,19 @@ public class User {
 
 	@Column(name = "location_lat")
 	private Double loactionLat;
-	
+
 	@Column(name = "location_lng")
 	private Double locationLng;
-	
+
 	@Column(name = "location_name")
 	private String locationName;
-	
+
 	@Column(name = "last_query")
 	private String lastQuery;
+
+	@Column(name = "chat_state")
+	@Enumerated(EnumType.STRING)
+	private ChatState chatState;
 
 	public String getLastQuery() {
 		return lastQuery;
@@ -110,6 +116,18 @@ public class User {
 	public void setLocationName(String locationName) {
 		this.locationName = locationName;
 	}
-	
-	
+
+	public ChatState getChatState() {
+		return chatState;
+	}
+
+	public void setChatState(ChatState chatState) {
+		this.chatState = chatState;
+	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", chatId=" + chatId + ", password=" + password + ", firstName=" + firstName + ", lastName=" + lastName + ", loactionLat=" + loactionLat + ", locationLng=" + locationLng + ", locationName=" + locationName + ", lastQuery=" + lastQuery + ", chatState=" + chatState + "]";
+	}
+
 }

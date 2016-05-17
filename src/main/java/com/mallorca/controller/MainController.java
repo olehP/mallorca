@@ -8,17 +8,19 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.mallorca.model.incoming.MessageRecieved;
 import com.mallorca.service.RecievedMessageService;
-import com.mallorca.service.UserService;
 
 @RestController
 public class MainController {
+
 	@Autowired
 	private RecievedMessageService recievedMessageService;
 
 	@RequestMapping("/")
-	private void index(@RequestBody MessageRecieved messageRecieved) {
+	private void index(@RequestBody(required = false) MessageRecieved messageRecieved) {
 		try {
-			recievedMessageService.proccessMessage(messageRecieved);
+			if (messageRecieved != null) {
+				recievedMessageService.proccessMessage(messageRecieved);
+			}
 		} catch (HttpClientErrorException e) {
 			System.out.println(e.getResponseBodyAsString());
 			System.out.println(e.getMessage());

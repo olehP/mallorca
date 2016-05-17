@@ -1,5 +1,5 @@
 package com.mallorca.entity;
 
 public enum UserMomentState {
-	TODO, DONE, CREATED, DEFINED;
+	TODO, DONE, CREATED, DEFINED, CANCELED;
 }
