@@ -1,7 +1,6 @@
 package com.mallorca;
 
 public class TestMain {
-
 	// private static final int IMG_WIDTH = 520;
 	// private static final int IMG_HEIGHT = 270;
 	// private static final double PERFECT_RATIO = ((double) IMG_WIDTH) / IMG_HEIGHT;

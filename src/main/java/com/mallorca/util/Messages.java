@@ -9,7 +9,7 @@ public class Messages {
 	public static final String DONE_MESSAGE = "Congrats, you've lived that moment. Keep going!";
 	public static final String EMPTY_TODO_LIST = "Your todo list is empty";
 	public static final String EMPTY_DONE_LIST = "Your done list is empty";
-	public static final String SEND_MOMENT_TEXT = "Please, send the text to the pictute with the prefix \"Text:\"";
+	public static final String SEND_MOMENT_TEXT = "Please, send the text to the pictute";
 	public static final String SEND_MOMENT_LOCATION = "Send me your location to give a chance for more people to live tha moment";
 	public static final String NO_MOMENT_WTHOUT_TEXT = "Please, send picture and after that text to picture";
 	public static final String SEARCH_STATE_WAS_ACTIVATED = "Search state was activated";

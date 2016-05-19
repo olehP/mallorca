@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.hotelbeds.distribution.hotel_api_sdk.types.HotelApiSDKException;
@@ -52,13 +53,10 @@ public class MomentsService {
 	private static final LocalDate dateTo = LocalDate.now().plusDays(7);
 
 	private static int getOffset(int page) {
-		if (page == 0) {
-			return PER_PAGE;
-		}
 		return page * PER_PAGE;
 	}
 
-	public List<MessageElement> getMoments(String query, String userId, Integer page) {
+	public List<MessageElement> getMoments(String query, String userId, int page) {
 		List<Moment> moments;
 		User user = userDAO.findByChatId(userId);
 		user.setLastQuery(query);
@@ -82,19 +80,19 @@ public class MomentsService {
 			messageElement.setSubtitle("Done: " + moment.getDoneClicked() + " times");
 			elements.add(messageElement);
 			List<Button> buttons = new LinkedList<>();
-			Button addButton = new Button();
-			addButton.setPayload("TODO_" + moment.getId());
-			addButton.setTitle("todo");
-			addButton.setType("postback");
+			Button todoButton = new Button();
+			todoButton.setPayload("TODO_" + moment.getId());
+			todoButton.setTitle("Todo");
+			todoButton.setType("postback");
 			Button doneButton = new Button();
 			doneButton.setPayload("DONE_" + moment.getId());
 			doneButton.setTitle("Done");
 			doneButton.setType("postback");
 			Button doItButton = new Button();
 			doItButton.setPayload("DOIT_" + moment.getId());
-			doItButton.setTitle("do it");
+			doItButton.setTitle("Do it");
 			doItButton.setType("postback");
-			buttons.add(addButton);
+			buttons.add(todoButton);
 			buttons.add(doneButton);
 			buttons.add(doItButton);
 			messageElement.setButtons(buttons);
@@ -105,24 +103,25 @@ public class MomentsService {
 		messageElement.setSubtitle("Powered by LNUTeam");
 		elements.add(messageElement);
 		List<Button> buttons = new LinkedList<>();
-		Button addButton = new Button();
-		addButton.setPayload("NEXT_" + (++page));
-		addButton.setTitle("Next");
-		addButton.setType("postback");
-		Button doneButton = new Button();
-		doneButton.setPayload("MENU");
-		doneButton.setTitle("Menu");
-		doneButton.setType("postback");
-		buttons.add(addButton);
-		buttons.add(doneButton);
+		Button nextButton = new Button();
+		nextButton.setPayload("NEXT_" + (++page));
+		nextButton.setTitle("Next");
+		nextButton.setType("postback");
+		Button menuButton = new Button();
+		menuButton.setPayload("MENU");
+		menuButton.setTitle("Menu");
+		menuButton.setType("postback");
+		buttons.add(nextButton);
+		buttons.add(menuButton);
 		messageElement.setButtons(buttons);
 
 		return elements;
 	}
 
-	public void showMyTodo(UserId userId) {
+	public void showMyTodo(UserId userId, int page) {
 		User user = userDAO.findByChatId(userId.getId());
-		List<Moment> moments = momentDAO.findByUserAndStatus(user, UserMomentState.TODO);
+		PageRequest pageRequest = new PageRequest(page, PER_PAGE);
+		List<Moment> moments = momentDAO.findByUserAndState(user, UserMomentState.TODO, pageRequest);
 		if (moments.isEmpty()) {
 			sendMessageService.sendSimpleMessage(userId, Messages.EMPTY_TODO_LIST);
 			return;
@@ -135,15 +134,15 @@ public class MomentsService {
 			messageElement.setSubtitle("Done: " + moment.getDoneClicked() + " times");
 			elements.add(messageElement);
 			List<Button> buttons = new LinkedList<>();
-			Button addButton = new Button();
-			addButton.setPayload("DOIT_" + moment.getId());
-			addButton.setTitle("do it");
-			addButton.setType("postback");
+			Button doitButton = new Button();
+			doitButton.setPayload("DOIT_" + moment.getId());
+			doitButton.setTitle("Do it");
+			doitButton.setType("postback");
 			Button doneButton = new Button();
 			doneButton.setPayload("DONE_" + moment.getId());
 			doneButton.setTitle("Done");
 			doneButton.setType("postback");
-			buttons.add(addButton);
+			buttons.add(doitButton);
 			buttons.add(doneButton);
 			messageElement.setButtons(buttons);
 		}
@@ -153,19 +152,25 @@ public class MomentsService {
 		messageElement.setSubtitle("Powered by LNUTeam");
 		elements.add(messageElement);
 		List<Button> buttons = new LinkedList<>();
-		Button doneButton = new Button();
-		doneButton.setPayload("MENU");
-		doneButton.setTitle("Menu");
-		doneButton.setType("postback");
-		buttons.add(doneButton);
+		Button nextButton = new Button();
+		nextButton.setPayload("MY_TODO_" + (++page));
+		nextButton.setTitle("Next");
+		nextButton.setType("postback");
+		Button menuButton = new Button();
+		menuButton.setPayload("MENU");
+		menuButton.setTitle("Menu");
+		menuButton.setType("postback");
+		buttons.add(nextButton);
+		buttons.add(menuButton);
 		messageElement.setButtons(buttons);
 		sendMessageService.sendGenericMessages(userId, elements);
 
 	}
 
-	public void showMyDone(UserId userId) {
+	public void showMyDone(UserId userId, int page) {
 		User user = userDAO.findByChatId(userId.getId());
-		List<Moment> moments = momentDAO.findByUserAndStatus(user, UserMomentState.DONE);
+		PageRequest pageRequest = new PageRequest(page, PER_PAGE);
+		List<Moment> moments = momentDAO.findByUserAndState(user, UserMomentState.DONE, pageRequest);
 		if (moments.isEmpty()) {
 			sendMessageService.sendSimpleMessage(userId, Messages.EMPTY_DONE_LIST);
 			return;
@@ -180,7 +185,7 @@ public class MomentsService {
 			List<Button> buttons = new LinkedList<>();
 			Button addButton = new Button();
 			addButton.setPayload("SHAREIT_" + moment.getId());
-			addButton.setTitle("share it");
+			addButton.setTitle("Share it");
 			addButton.setType("postback");
 			buttons.add(addButton);
 			messageElement.setButtons(buttons);
@@ -195,6 +200,13 @@ public class MomentsService {
 		doneButton.setPayload("MENU");
 		doneButton.setTitle("Menu");
 		doneButton.setType("postback");
+		if (moments.size() == PER_PAGE && ++page * PER_PAGE == momentDAO.findByUserAndStateCount(user, UserMomentState.TODO)) {
+			Button nextButton = new Button();
+			nextButton.setPayload("MY_DONE_" + (++page));
+			nextButton.setTitle("Next");
+			nextButton.setType("postback");
+			buttons.add(nextButton);
+		}
 		buttons.add(doneButton);
 		messageElement.setButtons(buttons);
 		sendMessageService.sendGenericMessages(userId, elements);
@@ -336,7 +348,7 @@ public class MomentsService {
 		List<Button> buttons = new LinkedList<>();
 		Button addButton = new Button();
 		addButton.setPayload("TODO_" + moment.getId());
-		addButton.setTitle("todo");
+		addButton.setTitle("Todo");
 		addButton.setType("postback");
 		Button doneButton = new Button();
 		doneButton.setPayload("DONE_" + moment.getId());

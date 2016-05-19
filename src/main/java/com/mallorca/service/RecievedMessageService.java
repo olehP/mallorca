@@ -1,5 +1,6 @@
 package com.mallorca.service;
 
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -72,6 +73,7 @@ public class RecievedMessageService {
 					userMoment.setMoment(moment);
 					userMoment.setUser(user);
 					userMoment.setState(UserMomentState.TODO);
+					userMoment.setModified(LocalDateTime.now());
 					userMomentDAO.save(userMoment);
 					sendMessageService.sendSimpleMessage(messaging.getSender(), Messages.TODO_ADDED_MESSAGE);
 					return;
@@ -84,6 +86,7 @@ public class RecievedMessageService {
 					momentDAO.save(moment);
 					UserMoment userMoment = userMomentDAO.findByUserAndMoment(user, moment);
 					userMoment.setState(UserMomentState.DONE);
+					userMoment.setModified(LocalDateTime.now());
 					userMomentDAO.save(userMoment);
 					sendMessageService.sendSimpleMessage(messaging.getSender(), Messages.DONE_MESSAGE);
 					return;
@@ -93,13 +96,15 @@ public class RecievedMessageService {
 					return;
 				}
 
-				if (payload.equals("MY_TODO")) {
-					momentService.showMyTodo(messaging.getSender());
+				if (payload.startsWith("MY_TODO")) {
+					int page = Integer.parseInt(payload.substring(payload.lastIndexOf('_') + 1));
+					momentService.showMyTodo(messaging.getSender(), page);
 					return;
 				}
 
-				if (payload.equals("MY_DONE")) {
-					momentService.showMyDone(messaging.getSender());
+				if (payload.startsWith("MY_DONE")) {
+					int page = Integer.parseInt(payload.substring(payload.lastIndexOf('_') + 1));
+					momentService.showMyDone(messaging.getSender(), page);
 					return;
 				}
 
@@ -156,12 +161,12 @@ public class RecievedMessageService {
 	public void showMenu(UserId userId) {
 		List<Button> buttons = new LinkedList<>();
 		Button todoButton = new Button();
-		todoButton.setPayload("MY_TODO");
+		todoButton.setPayload("MY_TODO_0");
 		todoButton.setTitle("My todo");
 		todoButton.setType("postback");
 		Button doneButton = new Button();
-		doneButton.setPayload("MY_DONE");
-		doneButton.setTitle("MY done");
+		doneButton.setPayload("MY_DONE_0");
+		doneButton.setTitle("My done");
 		doneButton.setType("postback");
 		Button dateButton = new Button();
 		dateButton.setPayload("DATE");
