@@ -20,9 +20,6 @@ public class User {
 	@Column(name = "chat_id")
 	private String chatId;
 
-	@Column(name = "password")
-	private String password;
-
 	@Column(name = "first_name")
 	private String firstName;
 
@@ -59,14 +56,6 @@ public class User {
 
 	public void setId(final Integer id) {
 		this.id = id;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(final String password) {
-		this.password = password;
 	}
 
 	public String getFirstName() {
@@ -127,7 +116,7 @@ public class User {
 
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", chatId=" + chatId + ", password=" + password + ", firstName=" + firstName + ", lastName=" + lastName + ", loactionLat=" + loactionLat + ", locationLng=" + locationLng + ", locationName=" + locationName + ", lastQuery=" + lastQuery + ", chatState=" + chatState + "]";
+		return "User [id=" + id + ", chatId=" + chatId +  ", firstName=" + firstName + ", lastName=" + lastName + ", loactionLat=" + loactionLat + ", locationLng=" + locationLng + ", locationName=" + locationName + ", lastQuery=" + lastQuery + ", chatState=" + chatState + "]";
 	}
 
 }

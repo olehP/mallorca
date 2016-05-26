@@ -37,32 +37,40 @@ public class ButtomTemplateRequest {
 
 	public static class Builder {
 
-		private ButtomTemplateRequest request = new ButtomTemplateRequest();
-
+		private UserId recipient;
+		private List<Button> buttons;
+		private String text;
 		private Builder() {
-			request.setMessage(new Message());
-			request.getMessage().setAttachment(new Attachment());
-			request.getMessage().getAttachment().setType("template");
-			request.getMessage().getAttachment().setPayload(new Payload());
-			request.getMessage().getAttachment().getPayload().setTemplateType("button");
 		}
 
 		public Builder recipient(UserId recipient) {
-			request.setRecipient(recipient);
+			this.recipient =recipient;
 			return this;
 		}
 
 		public Builder text(String text) {
-			request.getMessage().getAttachment().getPayload().setText(text);
+			this.text = text;
 			return this;
 		}
 
 		public Builder buttons(List<Button> buttons) {
-			request.getMessage().getAttachment().getPayload().setButtons(buttons);
+			this.buttons = buttons;
 			return this;
 		}
 
 		public ButtomTemplateRequest build() {
+			 ButtomTemplateRequest request = new ButtomTemplateRequest();
+			 Message message = new Message();
+			request.setMessage(message);
+			Attachment attachment = new Attachment();
+			message.setAttachment(attachment);
+			attachment.setType("template");
+			Payload payload = new Payload();
+			attachment.setPayload(payload);
+			payload.setTemplateType("button");
+			payload.setButtons(buttons);
+			payload.setText(text);
+			request.setRecipient(recipient);
 			return request;
 		}
 

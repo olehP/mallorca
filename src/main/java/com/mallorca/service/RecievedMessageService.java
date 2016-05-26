@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mallorca.dao.MomentDAO;
+import com.mallorca.dao.ReceivedMessageDAO;
 import com.mallorca.dao.UserDAO;
 import com.mallorca.dao.UserMomentDAO;
 import com.mallorca.entity.ChatState;
 import com.mallorca.entity.Moment;
+import com.mallorca.entity.ReceivedMessage;
 import com.mallorca.entity.User;
 import com.mallorca.entity.UserMoment;
 import com.mallorca.entity.UserMomentState;
@@ -37,6 +39,8 @@ public class RecievedMessageService {
 	private MomentDAO momentDAO;
 	@Autowired
 	private UserMomentDAO userMomentDAO;
+	@Autowired
+	private ReceivedMessageDAO receivedMessageDAO;
 
 	public void proccessMessage(MessageRecieved messageRecieved) {
 		Messaging messaging = messageRecieved.getEntry().get(0).getMessaging().get(0);
@@ -45,9 +49,16 @@ public class RecievedMessageService {
 			if (messaging.getMessage() != null && messaging.getMessage().getText() != null) {
 				if (user.getChatState() == ChatState.MOMENT_TEXT) {
 					momentService.addText(messaging.getMessage().getText(), messaging.getSender());
-				} else if (user.getChatState() == ChatState.SEARCH) {
+				} else {
+					userService.setSearchState(user);
 					userService.sendMoments(messaging.getSender(), messaging.getMessage().getText(), 0);
 				}
+				ReceivedMessage message = new ReceivedMessage();
+				message.setReceivedAt(LocalDateTime.now());
+				message.setText(messaging.getMessage().getText());
+				message.setUser(user);
+				message.setChatState(user.getChatState());
+				receivedMessageDAO.save(message);
 				return;
 			}
 			if (messaging.getPostback() != null && messaging.getPostback().getPayload() != null) {
@@ -62,7 +73,8 @@ public class RecievedMessageService {
 					Integer momentId = Integer.parseInt(payload.substring(payload.indexOf('_') + 1));
 					Moment moment = momentDAO.findOne(momentId);
 					UserMoment existingUserMoment = userMomentDAO.findByUserAndMoment(user, moment);
-					if (existingUserMoment != null && (existingUserMoment.getState() == UserMomentState.DONE || existingUserMoment.getState() == UserMomentState.DONE)) {
+					if (existingUserMoment != null && (existingUserMoment.getState() == UserMomentState.DONE
+							|| existingUserMoment.getState() == UserMomentState.DONE)) {
 						sendMessageService.sendSimpleMessage(messaging.getSender(), Messages.ALREADY_ADDED);
 						return;
 					}
@@ -85,6 +97,11 @@ public class RecievedMessageService {
 					moment.setDoneClicked(moment.getDoneClicked() + 1);
 					momentDAO.save(moment);
 					UserMoment userMoment = userMomentDAO.findByUserAndMoment(user, moment);
+					if (userMoment == null) {
+						userMoment = new UserMoment();
+						userMoment.setUser(user);
+						userMoment.setMoment(moment);
+					}
 					userMoment.setState(UserMomentState.DONE);
 					userMoment.setModified(LocalDateTime.now());
 					userMomentDAO.save(userMoment);
@@ -122,24 +139,30 @@ public class RecievedMessageService {
 					String payloadValue = payload.substring(payload.indexOf('_') + 1, payload.lastIndexOf('_'));
 					switch (payloadValue) {
 					case "ALL":
-						moment.setBookAllClicked(moment.getBookAllClicked() == null ? 1 : moment.getBookAllClicked() + 1);
+						moment.setBookAllClicked(
+								moment.getBookAllClicked() == null ? 1 : moment.getBookAllClicked() + 1);
 						break;
 					case "HOTEL":
-						moment.setBookHotelClicked(moment.getBookHotelClicked() == null ? 1 : moment.getBookHotelClicked() + 1);
+						moment.setBookHotelClicked(
+								moment.getBookHotelClicked() == null ? 1 : moment.getBookHotelClicked() + 1);
 						break;
 					case "ACTIVITY":
-						moment.setBookActivityClicked(moment.getBookActivityClicked() == null ? 1 : moment.getBookActivityClicked() + 1);
+						moment.setBookActivityClicked(
+								moment.getBookActivityClicked() == null ? 1 : moment.getBookActivityClicked() + 1);
 						break;
 					default:
 						break;
 					}
 					momentDAO.save(moment);
-					sendMessageService.sendSimpleMessage(messaging.getSender(), "Sorry, booking is not available now, but we are working on it. Thanks for using our bot.");
+					sendMessageService.sendSimpleMessage(messaging.getSender(),
+							"Sorry, booking is not available now, but we are working on it. Thanks for using our bot.");
 				}
 				return;
 			}
-			if (messaging.getMessage() != null && messaging.getMessage().getAttachments() != null && messaging.getMessage().getAttachments().get(0).getType().equals("image")) {
-				com.mallorca.model.incoming.Payload payloadImage = messaging.getMessage().getAttachments().get(0).getPayload();
+			if (messaging.getMessage() != null && messaging.getMessage().getAttachments() != null
+					&& messaging.getMessage().getAttachments().get(0).getType().equals("image")) {
+				com.mallorca.model.incoming.Payload payloadImage = messaging.getMessage().getAttachments().get(0)
+						.getPayload();
 				Moment moment = new Moment();
 				moment.setImageUrl(payloadImage.getUrl());
 				moment.setCreator(user);
@@ -148,9 +171,11 @@ public class RecievedMessageService {
 				sendMessageService.sendSimpleMessage(messaging.getSender(), Messages.SEND_MOMENT_TEXT);
 			}
 
-			if (messaging.getMessage() != null && messaging.getMessage().getAttachments() != null && messaging.getMessage().getAttachments().get(0).getType().equals("location")) {
+			if (messaging.getMessage() != null && messaging.getMessage().getAttachments() != null
+					&& messaging.getMessage().getAttachments().get(0).getType().equals("location")) {
 				if (user.getChatState() == ChatState.MOMENT_LOCATION) {
-					momentService.setMomentLocation(messaging.getSender(), messaging.getMessage().getAttachments().get(0).getPayload().getCoordinates());
+					momentService.setMomentLocation(messaging.getSender(),
+							messaging.getMessage().getAttachments().get(0).getPayload().getCoordinates());
 					sendMessageService.sendSimpleMessage(messaging.getSender(), "Thanks for sharing with us");
 				}
 			}
@@ -175,7 +200,8 @@ public class RecievedMessageService {
 		buttons.add(dateButton);
 		buttons.add(todoButton);
 		buttons.add(doneButton);
-		ButtomTemplateRequest request = ButtomTemplateRequest.getBuilder().recipient(userId).text("Menu").buttons(buttons).build();
+		ButtomTemplateRequest request = ButtomTemplateRequest.getBuilder().recipient(userId).text("Menu")
+				.buttons(buttons).build();
 		sendMessageService.sendButtonsMessage(request);
 	}
 

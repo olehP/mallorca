@@ -12,5 +12,5 @@ public class Messages {
 	public static final String SEND_MOMENT_TEXT = "Please, send the text to the pictute";
 	public static final String SEND_MOMENT_LOCATION = "Send me your location to give a chance for more people to live tha moment";
 	public static final String NO_MOMENT_WTHOUT_TEXT = "Please, send picture and after that text to picture";
-	public static final String SEARCH_STATE_WAS_ACTIVATED = "Search state was activated";
+	public static final String SEARCH_STATE_WAS_ACTIVATED = "Now you are on the search mode, so you can searching the moments just sending us a simple message with the key words";
 }
